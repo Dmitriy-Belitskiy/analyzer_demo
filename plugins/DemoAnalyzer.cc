@@ -46,6 +46,8 @@
 #include <fstream>
 #include <cstdint>
 
+#include <typeinfo>
+
 using namespace l1ScoutingRun3;
 
 class DemoAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
@@ -68,13 +70,12 @@ public:
 
   unsigned get_nb4(){
     unsigned nb4 = counter / 1634;
-    if (nb4 >15) {
-      nb4 = 15;
-    };
-
     return(nb4);
 
   }
+
+  unsigned last_entry = 0;
+  unsigned last_LS = 0;
 
   std::array<uint8_t, 3564> bx_mask_col;
   std::array<uint8_t, 3564> bx_mask_noncol;
@@ -235,11 +236,11 @@ void DemoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&) {
 
   auto lumi = iEvent.luminosityBlock();
 
+  //std::cout << lumi <<std::endl;
 
 
-
-  lumisection_ = ( (lumi<<4) | get_nb4() );
-  counter_advance();
+  //lumisection_ = ( (lumi<<4) | get_nb4() );
+  //counter_advance();
 
 
   // for(int i = 0 ; i<3564;i++ ){
@@ -255,6 +256,39 @@ void DemoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&) {
   // unsigned long long orbit = bx_event.event();
   // unsigned int lumi = iEvent.luminosityBlock();
   //
+  auto a5 = iEvent.id().event();
+
+  uint64_t a1 = (a5 >> (6 + 12)) & ((1ULL << 46) - 1);  // top 46 bits
+  uint64_t a2 = (a5 >> 12)       & 0x3F;                // next 6 bits
+  uint64_t a3 =  a5              & 0xFFF;               // last 12 bits
+
+  // if (last_entry != a2){
+  //   counter_advance();
+  // }
+  //
+  //
+  // if (last_entry != a2){
+  //   counter_advance();
+  // }
+  //
+
+
+  //last_entry = a2;
+
+  //unsigned nb1 =get_counter()-1;
+
+  //std::cout << get_counter()-1 << std::endl;
+
+  //lumisection_ = get_counter()-1;
+
+  //std::cout<< a1 << ", " << a2 << ", " << a3 << "\n";
+  //std::cout<<a5<<std::endl;
+  //std::cout<<( (a1<<6) | a2 )<<std::endl;
+  lumisection_ = ( (a1<<6) | a2 );
+
+  //std::cout<<typeid(a5).name()<<std::endl;
+
+
   // // --- Constants for CMS orbit structure ---
   // constexpr unsigned int ORBITS_PER_LS = 262144;
   // constexpr unsigned int ORBITS_PER_NB4 = ORBITS_PER_LS / 16; // 16384
