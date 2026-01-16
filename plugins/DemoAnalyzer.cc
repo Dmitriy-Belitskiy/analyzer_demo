@@ -194,9 +194,9 @@ DemoAnalyzer::DemoAnalyzer(const edm::ParameterSet& iPSet)
   m_1dhist_["muonPt_nc"] = histoSubDir.make<TH1D>("MPt_ncol", "BX in orbit with number of missing total sums", 200, -0.5, 200.5);
   m_1dhist_["muonPt_ag"] = histoSubDir.make<TH1D>("MPt_ag", "BX in orbit with number of missing total sums", 200, -0.5, 200.5);
 
-  m_1dhist_["muonPt_c"] = histoSubDir.make<TH1D>("MPt_col", "BX in orbit with number of missing total sums", 200, -0.5, 200.5);
-  m_1dhist_["muonPt_nc"] = histoSubDir.make<TH1D>("MPt_ncol", "BX in orbit with number of missing total sums", 200, -0.5, 200.5);
-  m_1dhist_["muonPt_ag"] = histoSubDir.make<TH1D>("MPt_ag", "BX in orbit with number of missing total sums", 200, -0.5, 200.5);
+  // m_1dhist_["muonPt_c"] = histoSubDir.make<TH1D>("MPt_col", "BX in orbit with number of missing total sums", 200, -0.5, 200.5);
+  // m_1dhist_["muonPt_nc"] = histoSubDir.make<TH1D>("MPt_ncol", "BX in orbit with number of missing total sums", 200, -0.5, 200.5);
+  // m_1dhist_["muonPt_ag"] = histoSubDir.make<TH1D>("MPt_ag", "BX in orbit with number of missing total sums", 200, -0.5, 200.5);
 
   m_1dhist_["jetEt_c"] = histoSubDir.make<TH1D>("JEt_col", "BX in orbit with number of missing total sums", 200, -0.5, 200.5);
   m_1dhist_["jetEt_nc"] = histoSubDir.make<TH1D>("JEt_ncol", "BX in orbit with number of missing total sums", 200, -0.5, 200.5);
@@ -207,7 +207,19 @@ DemoAnalyzer::DemoAnalyzer(const edm::ParameterSet& iPSet)
   m_1dhist_["egEt_ag"] = histoSubDir.make<TH1D>("eEt_ag", "BX in orbit with number of missing total sums", 200, -0.5, 200.5);
 
 
-/*
+  m_1dhist_["muonPhi_c"] = histoSubDir.make<TH1D>("MPhi_col", "BX in orbit with number of missing total sums",200 , -3.14, 3.14);
+  m_1dhist_["muonPhi_nc"] = histoSubDir.make<TH1D>("MPhi_ncol", "BX in orbit with number of missing total sums",200 , -3.14, 3.14);
+  m_1dhist_["muonPhi_ag"] = histoSubDir.make<TH1D>("MPhi_ag", "BX in orbit with number of missing total sums",200 , -3.14, 3.14);
+
+  m_1dhist_["jetPhi_c"] = histoSubDir.make<TH1D>("JPhi_col", "BX in orbit with number of missing total sums",200 , -3.14, 3.14);
+  m_1dhist_["jetPhi_nc"] = histoSubDir.make<TH1D>("JPhi_ncol", "BX in orbit with number of missing total sums",200 , -3.14, 3.14);
+  m_1dhist_["jetPhi_ag"] = histoSubDir.make<TH1D>("JPhi_ag", "BX in orbit with number of missing total sums",200 , -3.14, 3.14);
+
+  m_1dhist_["egPhi_c"] = histoSubDir.make<TH1D>("ePhi_col", "BX in orbit with number of missing total sums",200 , -3.14, 3.14);
+  m_1dhist_["egPhi_nc"] = histoSubDir.make<TH1D>("ePhi_ncol", "BX in orbit with number of missing total sums",200 , -3.14, 3.14);
+  m_1dhist_["egPhi_ag"] = histoSubDir.make<TH1D>("ePhi_ag", "BX in orbit with number of missing total sums",200 , -3.14, 3.14);
+
+  /*
   m_1dhist_["jetPt"] = histoSubDir.make<TH1D>("JPt_col", "BX in orbit with number of missing HT sums", 200, -0.5, 200.5);
   m_1dhist_["egammaPt"] = histoSubDir.make<TH1D>("EPt_col", "BX in orbit with number of Towercounts", 200, -0.5, 200.5);*/
   //init counter
@@ -414,6 +426,7 @@ void DemoAnalyzer::processDataBx(
 
       for (const auto& muon: l1muons_){
         m_1dhist_["muonPt_c"]->Fill(muon.pt());
+        m_1dhist_["muonPhi_c"]->Fill(muon.phi());
       }
     }
 
@@ -421,6 +434,7 @@ void DemoAnalyzer::processDataBx(
 
       for (const auto& muon: l1muons_){
         m_1dhist_["muonPt_nc"]->Fill(muon.pt());
+        m_1dhist_["muonPhi_nc"]->Fill(muon.phi());
       }
     }
 
@@ -428,6 +442,7 @@ void DemoAnalyzer::processDataBx(
 
       for (const auto& muon: l1muons_){
         m_1dhist_["muonPt_ag"]->Fill(muon.pt());
+        m_1dhist_["muonPhi_ag"]->Fill(muon.phi());
       }
     }
 
@@ -439,7 +454,7 @@ void DemoAnalyzer::processDataBx(
       {
 
         m_1dhist_["jetEt_c"]->Fill(jet.et());
-
+        m_1dhist_["jetPhi_c"]->Fill(jet.phi());
       }
     }
 
@@ -449,6 +464,7 @@ void DemoAnalyzer::processDataBx(
       {
 
         m_1dhist_["jetEt_nc"]->Fill(jet.et());
+        m_1dhist_["jetPhi_nc"]->Fill(jet.phi());
 
       }
 
@@ -459,6 +475,7 @@ void DemoAnalyzer::processDataBx(
       {
 
         m_1dhist_["jetEt_ag"]->Fill(jet.et());
+        m_1dhist_["jetPhi_ag"]->Fill(jet.phi());
 
       }
 
@@ -472,6 +489,7 @@ void DemoAnalyzer::processDataBx(
       for (const auto& egamma: l1egs_){
 
          m_1dhist_["egEt_c"]->Fill(egamma.et());
+         m_1dhist_["egPhi_c"]->Fill(egamma.phi());
 
       }
 
@@ -481,6 +499,7 @@ void DemoAnalyzer::processDataBx(
       for (const auto& egamma: l1egs_){
 
           m_1dhist_["egEt_nc"]->Fill(egamma.et());
+          m_1dhist_["egPhi_nc"]->Fill(egamma.phi());
 
         }
 
@@ -491,6 +510,7 @@ void DemoAnalyzer::processDataBx(
       for (const auto& egamma: l1egs_){
 
           m_1dhist_["egEt_ag"]->Fill(egamma.et());
+          m_1dhist_["egPhi_ag"]->Fill(egamma.phi());
 
         }
 
