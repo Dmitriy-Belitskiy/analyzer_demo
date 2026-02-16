@@ -638,11 +638,11 @@ void DemoAnalyzer::endJob() {
 
   for (const auto& [key, values] : muons_b_c) {
     for (int bx = 0; bx < nBX; ++bx) {
-      m_2dhist_["MuonBxOcc2D"]->Fill(key, bx, values[bx]);
+      m_2dhist_["MuonBxOcc2D_cut"]->Fill(key, bx, values[bx]);
     }
   }
 
-  muons_b.clear();
+  muons_b_c.clear();
 
 
   // jets
