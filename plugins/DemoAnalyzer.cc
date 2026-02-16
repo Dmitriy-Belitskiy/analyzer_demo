@@ -126,6 +126,8 @@ private:
   std::map<int, std::vector<float>> jets_b;
     std::map<int, std::vector<float>> jets_b_c;
   std::map<int, std::vector<float>> eGammas_b;
+    std::map<int, std::vector<float>> eGammas_n;
+      std::map<int, std::vector<float>> eGammas_b_c;
   std::map<int, std::vector<float>> taus_b;
 
   std::map<int, std::vector<float>> missing_b;
@@ -575,6 +577,31 @@ void DemoAnalyzer::processDataBx(
     if (eGammas_b.find(lumisection_) == eGammas_b.end()) {
       eGammas_b[lumisection_] = std::vector<float>(3564, 0.0f);
     }
+    for (const auto& egam: l1egs_){
+      eGammas_b[lumisection_][bx] += egam.pt();
+      }
+
+    if (eGammas_b_c.find(lumisection_) == eGammas_b_c.end()) {
+      eGammas_b_c[lumisection_] = std::vector<float>(3564, 0.0f);
+    }
+    for (const auto& egam: l1egs_){
+      if (egam.pt() > 10){
+      eGammas_b_c[lumisection_][bx] += egam.pt();
+      }
+    }
+
+     // eGammas
+    if (eGammas_n.find(lumisection_) == eGammas_n.end()) {
+      eGammas_n[lumisection_] = std::vector<float>(3564, 0.0f);
+    }
+    for (size_t i = 0; i < l1egs_.size(); ++i) {
+      eGammas_n[lumisection_][bx] += 1;
+    }
+
+     // eGammas
+    if (eGammas_b.find(lumisection_) == eGammas_b.end()) {
+      eGammas_b[lumisection_] = std::vector<float>(3564, 0.0f);
+    }
     for (size_t i = 0; i < l1egs_.size(); ++i) {
       eGammas_b[lumisection_][bx] += 1;
     }
@@ -724,6 +751,34 @@ void DemoAnalyzer::endJob() {
   }
 
   eGammas_b.clear();
+
+
+    m_2dhist_["eGammaBxOcc2D_c"] = histoSubDir.make<TH2D>( "eGammaBxOcc2D_10_cut", "eGamma per bcid vs Lumisection"
+    , nLumiBins, minLS - 0.5, maxLS + 0.5
+    , nBX, -0.5, nBX - 0.5
+    );
+
+  for (const auto& [key, values] : eGammas_b_c) {
+    for (int bx = 0; bx < nBX; ++bx) {
+      m_2dhist_["eGammaBxOcc2D_c"]->Fill(key, bx, values[bx]);
+    }
+  }
+
+  eGammas_b_c.clear();
+
+
+      m_2dhist_["eGammaBxOcc2D_n"] = histoSubDir.make<TH2D>( "eGammaBxOcc2D_n", "eGamma per bcid vs Lumisection"
+    , nLumiBins, minLS - 0.5, maxLS + 0.5
+    , nBX, -0.5, nBX - 0.5
+    );
+
+  for (const auto& [key, values] : eGammas_n) {
+    for (int bx = 0; bx < nBX; ++bx) {
+      m_2dhist_["eGammaBxOcc2D_n"]->Fill(key, bx, values[bx]);
+    }
+  }
+
+  eGammas_n.clear();
 
 
   // taus
