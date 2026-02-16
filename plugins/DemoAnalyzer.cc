@@ -122,7 +122,9 @@ private:
   // map containing objects
   std::map<int, std::vector<float>> muons_b;
   std::map<int, std::vector<float>> muons_b_c;
+    std::map<int, std::vector<float>> jets_n;
   std::map<int, std::vector<float>> jets_b;
+    std::map<int, std::vector<float>> jets_b_c;
   std::map<int, std::vector<float>> eGammas_b;
   std::map<int, std::vector<float>> taus_b;
 
@@ -541,12 +543,32 @@ void DemoAnalyzer::processDataBx(
       }
     }
 
+
+ // jets
+    if (jets_n.find(lumisection_) == jets_n.end()) {
+      jets_n[lumisection_] = std::vector<float>(3564, 0.0f);
+    }
+    for (const auto& jet: l1jets_){
+      jets_n[lumisection_][bx] += 1;
+    }
+
     // jets
     if (jets_b.find(lumisection_) == jets_b.end()) {
       jets_b[lumisection_] = std::vector<float>(3564, 0.0f);
     }
     for (const auto& jet: l1jets_){
       jets_b[lumisection_][bx] += jet.pt();
+    }
+
+
+     // jets
+    if (jets_b_c.find(lumisection_) == jets_b_c.end()) {
+      jets_b_c[lumisection_] = std::vector<float>(3564, 0.0f);
+    }
+    for (const auto& jet: l1jets_){
+      if (jet.pt() > 20){
+      jets_b_c[lumisection_][bx] += jet.pt();
+      }
     }
 
     // eGammas
@@ -644,7 +666,7 @@ void DemoAnalyzer::endJob() {
 
   muons_b_c.clear();
 
-
+  
   // jets
   m_2dhist_["JetBxOcc2D"] = histoSubDir.make<TH2D>( "JetBxOcc2D", "Jet per bcid vs Lumisection"
     , nLumiBins, minLS - 0.5, maxLS + 0.5
@@ -659,6 +681,35 @@ void DemoAnalyzer::endJob() {
 
   jets_b.clear();
 
+
+   // jets
+  m_2dhist_["JetBxOcc2D_n"] = histoSubDir.make<TH2D>( "JetBxOcc2D_n", "Jet per bcid vs Lumisection"
+    , nLumiBins, minLS - 0.5, maxLS + 0.5
+    , nBX, -0.5, nBX - 0.5
+    );
+
+  for (const auto& [key, values] : jets_n) {
+    for (int bx = 0; bx < nBX; ++bx) {
+      m_2dhist_["JetBxOcc2D_n"]->Fill(key, bx, values[bx]);
+    }
+  }
+
+  jets_n.clear();
+
+
+   // jets
+  m_2dhist_["JetBxOcc2D_c"] = histoSubDir.make<TH2D>( "JetBxOcc2D_c_20", "Jet per bcid vs Lumisection"
+    , nLumiBins, minLS - 0.5, maxLS + 0.5
+    , nBX, -0.5, nBX - 0.5
+    );
+
+  for (const auto& [key, values] : jets_b_c) {
+    for (int bx = 0; bx < nBX; ++bx) {
+      m_2dhist_["JetBxOcc2D_c"]->Fill(key, bx, values[bx]);
+    }
+  }
+
+  jets_b_c.clear();
 
   // eGammas
   m_2dhist_["eGammaBxOcc2D"] = histoSubDir.make<TH2D>( "eGammaBxOcc2D", "eGamma per bcid vs Lumisection"
