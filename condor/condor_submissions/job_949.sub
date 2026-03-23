@@ -1,0 +1,20 @@
+universe   = vanilla
+executable = run_cmssw.sh
+arguments  = root://cms-xrd-global.cern.ch//store/data/Run2025C/L1Scouting/L1SCOUT/v1/000/392/526/00000/8d9f60b9-21a0-49c2-81f1-8188ef3ffff0.root /eos/home-d/dmbelyts/root_out3/392526/part_18/392526_949.root
+output     = logs/job_949.out
+error      = logs/job_949.err
+log        = logs/job_949.log
++JobFlavour = "longlunch"
+
++AccountingGroup = "group_u_CMS.CAF.COMM"
+
+transfer_input_files = /afs/cern.ch/user/d/dmbelyts/CMSSW_15_0_6/src/Demo/analyzer_demo/python/demo_cfg.py
+
+
+use_x509userproxy = true
+x509userproxy = /afs/cern.ch/user/d/dmbelyts/CMSSW_15_0_6/src/Demo/analyzer_demo/proxy.pem
+
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
+
+queue 1
