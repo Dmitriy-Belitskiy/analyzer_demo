@@ -328,7 +328,7 @@ void DemoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&) {
 
   // process all BX in orbit containing at least a Muon
   // getFilledBxs() returns the list of filled BX in the muon orbit collection
-  for (const unsigned& bx : muonsCollection->getFilledBxs()) {
+  for (unsigned bx = 0; bx < 3564; ++bx) {
     processDataBx(
         bx,
         muonsCollection,
