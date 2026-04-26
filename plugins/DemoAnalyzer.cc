@@ -294,7 +294,7 @@ void DemoAnalyzer::endJob() {
   int maxLS = std::numeric_limits<int>::min();
 
   // muons
-  for (const auto& [key, _] : muons_b) {
+  for (const auto& [key, _] : muons_n) {
       if (key < minLS) minLS = key;
       if (key > maxLS) maxLS = key;
   }
@@ -312,36 +312,7 @@ void DemoAnalyzer::endJob() {
     }
   }
 
-  muons_b.clear();
-
-
-   m_2dhist_["MuonBxOcc2D_cut"] = histoSubDir.make<TH2D>( "MuonBxOcc2D_3Gev_cut", "Muon per bcid vs Lumisection"
-    , nLumiBins, minLS - 0.5, maxLS + 0.5
-    , nBX, -0.5, nBX - 0.5
-    );
-
-  for (const auto& [key, values] : muons_b_c) {
-    for (int bx = 0; bx < nBX; ++bx) {
-      m_2dhist_["MuonBxOcc2D_cut"]->Fill(key, bx, values[bx]);
-    }
-  }
-
-  muons_b_c.clear();
-
-  
-  // jets
-  m_2dhist_["JetBxOcc2D"] = histoSubDir.make<TH2D>( "JetBxOcc2D", "Jet per bcid vs Lumisection"
-    , nLumiBins, minLS - 0.5, maxLS + 0.5
-    , nBX, -0.5, nBX - 0.5
-    );
-
-  for (const auto& [key, values] : jets_b) {
-    for (int bx = 0; bx < nBX; ++bx) {
-      m_2dhist_["JetBxOcc2D"]->Fill(key, bx, values[bx]);
-    }
-  }
-
-  jets_b.clear();
+  muons_n.clear();
 
 
    // jets
@@ -359,47 +330,7 @@ void DemoAnalyzer::endJob() {
   jets_n.clear();
 
 
-   // jets
-  m_2dhist_["JetBxOcc2D_c"] = histoSubDir.make<TH2D>( "JetBxOcc2D_c_20", "Jet per bcid vs Lumisection"
-    , nLumiBins, minLS - 0.5, maxLS + 0.5
-    , nBX, -0.5, nBX - 0.5
-    );
-
-  for (const auto& [key, values] : jets_b_c) {
-    for (int bx = 0; bx < nBX; ++bx) {
-      m_2dhist_["JetBxOcc2D_c"]->Fill(key, bx, values[bx]);
-    }
-  }
-
-  jets_b_c.clear();
-
   // eGammas
-  m_2dhist_["eGammaBxOcc2D"] = histoSubDir.make<TH2D>( "eGammaBxOcc2D", "eGamma per bcid vs Lumisection"
-    , nLumiBins, minLS - 0.5, maxLS + 0.5
-    , nBX, -0.5, nBX - 0.5
-    );
-
-  for (const auto& [key, values] : eGammas_b) {
-    for (int bx = 0; bx < nBX; ++bx) {
-      m_2dhist_["eGammaBxOcc2D"]->Fill(key, bx, values[bx]);
-    }
-  }
-
-  eGammas_b.clear();
-
-
-    m_2dhist_["eGammaBxOcc2D_c"] = histoSubDir.make<TH2D>( "eGammaBxOcc2D_10_cut", "eGamma per bcid vs Lumisection"
-    , nLumiBins, minLS - 0.5, maxLS + 0.5
-    , nBX, -0.5, nBX - 0.5
-    );
-
-  for (const auto& [key, values] : eGammas_b_c) {
-    for (int bx = 0; bx < nBX; ++bx) {
-      m_2dhist_["eGammaBxOcc2D_c"]->Fill(key, bx, values[bx]);
-    }
-  }
-
-  eGammas_b_c.clear();
 
 
       m_2dhist_["eGammaBxOcc2D_n"] = histoSubDir.make<TH2D>( "eGammaBxOcc2D_n", "eGamma per bcid vs Lumisection"
