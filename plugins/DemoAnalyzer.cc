@@ -56,33 +56,12 @@ public:
   ~DemoAnalyzer() {}
   static void fillDescriptions(edm::ConfigurationDescriptions&);
 
-  unsigned get_counter(){
-    return (counter);
-  };
-
-  void counter_advance(){
-    counter++;
-  }
-
-  void reset_counter(){
-    counter=0;
-  }
-
-  unsigned get_nb4(){
-    unsigned nb4 = counter / 1634;
-    return(nb4);
-
-  }
-
-  unsigned last_entry = 0;
-  unsigned last_LS = 0;
 
 private:
   void analyze(const edm::Event&, const edm::EventSetup&) override;
   void beginJob() override;
   void endJob() override;
 
-  unsigned counter;
 
   void processDataBx(
     unsigned bx,
@@ -110,9 +89,6 @@ private:
   std::vector<l1t::Tau> l1taus_;
   std::vector<l1t::Muon> l1muons_;
 
-  // map containing TH1D histograms
-  std::map<std::string, TH1D*> m_1dhist_;
-
   // map containing TH2D histograms
   std::map<std::string, TH2D*> m_2dhist_;
 
@@ -120,18 +96,10 @@ private:
   unsigned lumisection_;
 
   // map containing objects
-  std::map<int, std::vector<float>> muons_b;
-  std::map<int, std::vector<float>> muons_b_c;
-    std::map<int, std::vector<float>> jets_n;
-  std::map<int, std::vector<float>> jets_b;
-    std::map<int, std::vector<float>> jets_b_c;
-  std::map<int, std::vector<float>> eGammas_b;
-    std::map<int, std::vector<float>> eGammas_n;
-      std::map<int, std::vector<float>> eGammas_b_c;
-  std::map<int, std::vector<float>> taus_b;
-
-  std::map<int, std::vector<float>> missing_b;
-  std::map<int, std::vector<float>> esum_b;
+  std::map<int, std::vector<float>> muons_n;
+  std::map<int, std::vector<float>> jets_n;
+  std::map<int, std::vector<float>> eGammas_n;
+  std::map<int, std::vector<float>> esum_n;
 
   edm::Service<TFileService> fs;
   TFileDirectory histoSubDir = fs->mkdir("histograms");
@@ -156,67 +124,7 @@ DemoAnalyzer::DemoAnalyzer(const edm::ParameterSet& iPSet)
   l1taus_.reserve(12);
   l1sums_.reserve(12);
 
-  // Init histograms
-  m_1dhist_["MuonBxOcc"] = histoSubDir.make<TH1D>("MuonBxOcc", "BX in orbit with at least one muon", 3566, -0.5, 3565.5);
-  m_1dhist_["Jets"] = histoSubDir.make<TH1D>("Jets", "BX in orbit with number of jets", 3566, -0.5, 3565.5);
-  m_1dhist_["eGammas"] = histoSubDir.make<TH1D>("eGammas", "BX in orbit with number of eGammas", 3566, -0.5, 3565.5);
-  m_1dhist_["Taus"] = histoSubDir.make<TH1D>("Taus", "BX in orbit with number of Taus", 3566, -0.5, 3565.5);
-  m_1dhist_["Etsums"] = histoSubDir.make<TH1D>("EtSums", "BX in orbit with number of total sums", 3566, -0.5, 3565.5);
-  m_1dhist_["Htsums"] = histoSubDir.make<TH1D>("HtSums", "BX in orbit with number of HT sums", 3566, -0.5, 3565.5);
-  m_1dhist_["MissingEt"] = histoSubDir.make<TH1D>("MissingEt", "BX in orbit with number of missing total sums", 3566, -0.5, 3565.5);
-  m_1dhist_["MissingHt"] = histoSubDir.make<TH1D>("MissingHt", "BX in orbit with number of missing HT sums", 3566, -0.5, 3565.5);
-  m_1dhist_["TowerCount"] = histoSubDir.make<TH1D>("TowerCount", "BX in orbit with number of Towercounts", 3566, -0.5, 3565.5);
-
-  //m_1dhist_["muonPt_c"] = histoSubDir.make<TH1D>("MPt_col", "BX in orbit with number of missing total sums", 200, -0.5, 200.5);
-  //m_1dhist_["muonPt_nc"] = histoSubDir.make<TH1D>("MPt_ncol", "BX in orbit with number of missing total sums", 200, -0.5, 200.5);
-  //m_1dhist_["muonPt_ag"] = histoSubDir.make<TH1D>("MPt_ag", "BX in orbit with number of missing total sums", 200, -0.5, 200.5);
-
-  // m_1dhist_["muonPt_c"] = histoSubDir.make<TH1D>("MPt_col", "BX in orbit with number of missing total sums", 200, -0.5, 200.5);
-  // m_1dhist_["muonPt_nc"] = histoSubDir.make<TH1D>("MPt_ncol", "BX in orbit with number of missing total sums", 200, -0.5, 200.5);
-  // m_1dhist_["muonPt_ag"] = histoSubDir.make<TH1D>("MPt_ag", "BX in orbit with number of missing total sums", 200, -0.5, 200.5);
-
-  // m_1dhist_["jetEt_c"] = histoSubDir.make<TH1D>("JEt_col", "BX in orbit with number of missing total sums", 200, -0.5, 200.5);
-  // m_1dhist_["jetEt_nc"] = histoSubDir.make<TH1D>("JEt_ncol", "BX in orbit with number of missing total sums", 200, -0.5, 200.5);
-  // m_1dhist_["jetEt_ag"] = histoSubDir.make<TH1D>("JEt_ag", "BX in orbit with number of missing total sums", 200, -0.5, 200.5);
-
-  // m_1dhist_["egEt_c"] = histoSubDir.make<TH1D>("eEt_col", "BX in orbit with number of missing total sums", 200, -0.5, 200.5);
-  // m_1dhist_["egEt_nc"] = histoSubDir.make<TH1D>("eEt_ncol", "BX in orbit with number of missing total sums", 200, -0.5, 200.5);
-  // m_1dhist_["egEt_ag"] = histoSubDir.make<TH1D>("eEt_ag", "BX in orbit with number of missing total sums", 200, -0.5, 200.5);
-
-
-  // m_1dhist_["muonPhi_c"] = histoSubDir.make<TH1D>("MPhi_col", "BX in orbit with number of missing total sums",200 , -3.14, 3.14);
-  // m_1dhist_["muonPhi_nc"] = histoSubDir.make<TH1D>("MPhi_ncol", "BX in orbit with number of missing total sums",200 , -3.14, 3.14);
-  // m_1dhist_["muonPhi_ag"] = histoSubDir.make<TH1D>("MPhi_ag", "BX in orbit with number of missing total sums",200 , -3.14, 3.14);
-
-  // m_1dhist_["jetPhi_c"] = histoSubDir.make<TH1D>("JPhi_col", "BX in orbit with number of missing total sums",200 , -3.14, 3.14);
-  // m_1dhist_["jetPhi_nc"] = histoSubDir.make<TH1D>("JPhi_ncol", "BX in orbit with number of missing total sums",200 , -3.14, 3.14);
-  // m_1dhist_["jetPhi_ag"] = histoSubDir.make<TH1D>("JPhi_ag", "BX in orbit with number of missing total sums",200 , -3.14, 3.14);
-
-  // m_1dhist_["egPhi_c"] = histoSubDir.make<TH1D>("ePhi_col", "BX in orbit with number of missing total sums",200 , -3.14, 3.14);
-  // m_1dhist_["egPhi_nc"] = histoSubDir.make<TH1D>("ePhi_ncol", "BX in orbit with number of missing total sums",200 , -3.14, 3.14);
-  // m_1dhist_["egPhi_ag"] = histoSubDir.make<TH1D>("ePhi_ag", "BX in orbit with number of missing total sums",200 , -3.14, 3.14);
-
-
-
-  // m_1dhist_["muonEta_c"] = histoSubDir.make<TH1D>("MEta_col", "BX in orbit with number of missing total sums",200 , -3, 3);
-  // m_1dhist_["muonEta_nc"] = histoSubDir.make<TH1D>("MEta_ncol", "BX in orbit with number of missing total sums",200 , -3, 3);
-  // m_1dhist_["muonEta_ag"] = histoSubDir.make<TH1D>("MEta_ag", "BX in orbit with number of missing total sums",200 , -3, 3);
-
-  // m_1dhist_["jetEta_c"] = histoSubDir.make<TH1D>("JEta_col", "BX in orbit with number of missing total sums",200 , -3, 3);
-  // m_1dhist_["jetEta_nc"] = histoSubDir.make<TH1D>("JEta_ncol", "BX in orbit with number of missing total sums",200 , -3, 3);
-  // m_1dhist_["jetEta_ag"] = histoSubDir.make<TH1D>("JEta_ag", "BX in orbit with number of missing total sums",200 , -3, 3);
-
-  // m_1dhist_["egEta_c"] = histoSubDir.make<TH1D>("eEta_col", "BX in orbit with number of missing total sums",200 , -3, 3);
-  // m_1dhist_["egEta_nc"] = histoSubDir.make<TH1D>("eEta_ncol", "BX in orbit with number of missing total sums",200 , -3, 3);
-  // m_1dhist_["egEta_ag"] = histoSubDir.make<TH1D>("eEta_ag", "BX in orbit with number of missing total sums",200 , -3, 3);
-  // /*
-  // m_1dhist_["jetPt"] = histoSubDir.make<TH1D>("JPt_col", "BX in orbit with number of missing HT sums", 200, -0.5, 200.5);
-  // m_1dhist_["egammaPt"] = histoSubDir.make<TH1D>("EPt_col", "BX in orbit with number of Towercounts", 200, -0.5, 200.5);*/
-  // //init counter
-  // reset_counter();
-  
-
-
+   
 }
 
 
@@ -234,100 +142,19 @@ void DemoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&) {
   iEvent.getByToken(tausTokenData_, tausCollection);
   iEvent.getByToken(bxSumsTokenData_, bxSumsCollection);
 
-  // store lumisection number
 
   auto lumi = iEvent.luminosityBlock();
 
-  //std::cout << lumi <<std::endl;
-
-
-  //lumisection_ = ( (lumi<<4) | get_nb4() );
-  //counter_advance();
-
-
-  // for(int i = 0 ; i<3564;i++ ){
-  //
-  //       std::cout<<int(bx_mask_col[i])<<int(bx_mask_noncol[i])<<int(bx_mask_ag[i])<<std::endl;
-  //   }
-
-
-  //std::cout<<lumisection_<<std::endl ;
-  //std::cout<<(lumi<<4)<<std::endl;
-  // // --- Retrieve event info ---
-  // auto bx_event = iEvent.id();
-  // unsigned long long orbit = bx_event.event();
-  // unsigned int lumi = iEvent.luminosityBlock();
-  //
   auto a5 = iEvent.id().event();
 
   uint64_t a1 = (a5 >> (6 + 12)) & ((1ULL << 46) - 1);  // top 46 bits
   uint64_t a2 = (a5 >> 12)       & 0x3F;                // next 6 bits
   uint64_t a3 =  a5              & 0xFFF;               // last 12 bits
 
-  // if (last_entry != a2){
-  //   counter_advance();
-  // }
-  //
-  //
-  // if (last_entry != a2){
-  //   counter_advance();
-  // }
-  //
-
-
-  //last_entry = a2;
-
-  //unsigned nb1 =get_counter()-1;
-
-  //std::cout << get_counter()-1 << std::endl;
-
-  //lumisection_ = get_counter()-1;
-
-  //std::cout<< a1 << ", " << a2 << ", " << a3 << "\n";
-  //std::cout<<a5<<std::endl;
-  //std::cout<<( (a1<<6) | a2 )<<std::endl;
   lumisection_ = ( (a1<<6) | a2 );
 
-  //std::cout<<typeid(a5).name()<<std::endl;
 
-
-  // // --- Constants for CMS orbit structure ---
-  // constexpr unsigned int ORBITS_PER_LS = 262144;
-  // constexpr unsigned int ORBITS_PER_NB4 = ORBITS_PER_LS / 16; // 16384
-  //
-  // // --- Persistent reference per LS ---
-  // static unsigned long long referenceOrbit = 0;
-  // static unsigned int referenceLumi = 0;
-  //
-  // // --- Reset when new LS starts ---
-  // if (referenceLumi != lumi) {
-  //     referenceLumi = lumi;
-  //     referenceOrbit = orbit;
-  // }
-  //
-  // // --- Orbit offset inside LS ---
-  // unsigned long long deltaOrbit = orbit - referenceOrbit;
-  //
-  // // --- Compute nb4 index (0–15) ---
-  // unsigned int nb4_index = deltaOrbit / ORBITS_PER_NB4;
-  // if (nb4_index > 15) nb4_index = 15;
-  //
-  // // --- Combined absolute fine-grained Lumi ID ---
-  // unsigned int lumiNb4ID = lumi * 100 + nb4_index;
-
-  // // --- Output / store result ---
-  // std::cout << "Event: " << bx_event.event()
-  //           << " | orbit≈ " << orbit
-  //           << " | LS: " << lumi
-  //           << " | nb4: " << nb4_index
-  //           << " | LumiNb4ID: " << lumiNb4ID
-  //           << std::endl;
-
- // --- Output / store result ---
- // std::cout << lumi  << std::endl;
-
-  // process all BX in orbit containing at least a Muon
-  // getFilledBxs() returns the list of filled BX in the muon orbit collection
+  // process all BX 
   for (unsigned bx = 0; bx < 3564; ++bx) {
     processDataBx(
         bx,
@@ -384,166 +211,15 @@ void DemoAnalyzer::processDataBx(
       l1taus_.emplace_back(getL1TTau(tau));
     }
 
-    // store some of the sums and make histograms
-    if (bxSums.size()>0){
-      l1t::EtSum l1sum;
-
-      l1sum = getL1TEtSum(bxSums[0], l1t::EtSum::EtSumType::kTotalEt);
-      m_1dhist_["Etsums"]->Fill(bx, l1sum.pt());
-
-      l1sum = getL1TEtSum(bxSums[0], l1t::EtSum::EtSumType::kTotalHt);
-      m_1dhist_["Htsums"]->Fill(bx, l1sum.pt());
-
-      l1sum = getL1TEtSum(bxSums[0], l1t::EtSum::EtSumType::kMissingEt);
-      m_1dhist_["MissingEt"]->Fill(bx, l1sum.pt());
-
-      l1sum = getL1TEtSum(bxSums[0], l1t::EtSum::EtSumType::kMissingHt);
-      m_1dhist_["MissingHt"]->Fill(bx, l1sum.pt());
-
-      l1sum = getL1TEtSum(bxSums[0], l1t::EtSum::EtSumType::kTowerCount);
-      m_1dhist_["TowerCount"]->Fill(bx, l1sum.pt());
-    }
-
-    // fill histograms
-    for (const auto& muon: l1muons_){
-      m_1dhist_["MuonBxOcc"]->Fill(bx);
-    }
-
-
-     // fill histograms
-     //____________________________________________
-    // if (bx_mask_col[bx-1]){
-
-    //   for (const auto& muon: l1muons_){
-    //     m_1dhist_["muonPt_c"]->Fill(muon.pt());
-    //     m_1dhist_["muonPhi_c"]->Fill(muon.phi());
-    //     m_1dhist_["muonEta_c"]->Fill(muon.eta());
-    //   }
-    // }
-
-    // if (bx_mask_noncol[bx-1]){
-
-    //   for (const auto& muon: l1muons_){
-    //     m_1dhist_["muonPt_nc"]->Fill(muon.pt());
-    //     m_1dhist_["muonPhi_nc"]->Fill(muon.phi());
-    //     m_1dhist_["muonEta_nc"]->Fill(muon.eta());
-    //   }
-    // }
-
-    // if (bx_mask_ag[bx-1]){
-
-    //   for (const auto& muon: l1muons_){
-    //     m_1dhist_["muonPt_ag"]->Fill(muon.pt());
-    //     m_1dhist_["muonPhi_ag"]->Fill(muon.phi());
-    //     m_1dhist_["muonEta_ag"]->Fill(muon.eta());
-    //   }
-    // }
-
-    // //____________________________________________
-    // //____________________________________________
-    // if (bx_mask_col[bx-1]){
-
-    //   for (const auto& jet: l1jets_)
-    //   {
-
-    //     m_1dhist_["jetEt_c"]->Fill(jet.et());
-    //     m_1dhist_["jetPhi_c"]->Fill(jet.phi());
-    //     m_1dhist_["jetEta_c"]->Fill(jet.eta());
-    //   }
-    // }
-
-    // if (bx_mask_noncol[bx-1]){
-
-    //   for (const auto& jet: l1jets_)
-    //   {
-
-    //     m_1dhist_["jetEt_nc"]->Fill(jet.et());
-    //     m_1dhist_["jetPhi_nc"]->Fill(jet.phi());
-    //     m_1dhist_["jetEta_nc"]->Fill(jet.eta());
-
-    //   }
-
-    // }
-
-    // if (bx_mask_ag[bx-1]){
-    //   for (const auto& jet: l1jets_)
-    //   {
-
-    //     m_1dhist_["jetEt_ag"]->Fill(jet.et());
-    //     m_1dhist_["jetPhi_ag"]->Fill(jet.phi());
-    //     m_1dhist_["jetEta_ag"]->Fill(jet.eta());
-    //   }
-
-    // }
-
-
-    // //____________________________________________
-    // //____________________________________________
-
-    // if (bx_mask_col[bx-1]){
-    //   for (const auto& egamma: l1egs_){
-
-    //      m_1dhist_["egEt_c"]->Fill(egamma.et());
-    //      m_1dhist_["egPhi_c"]->Fill(egamma.phi());
-    //      m_1dhist_["egEta_c"]->Fill(egamma.eta());
-    //   }
-
-    // }
-
-    // if (bx_mask_noncol[bx-1]){
-    //   for (const auto& egamma: l1egs_){
-
-    //       m_1dhist_["egEt_nc"]->Fill(egamma.et());
-    //       m_1dhist_["egPhi_nc"]->Fill(egamma.phi());
-    //       m_1dhist_["egEta_nc"]->Fill(egamma.eta());
-
-    //     }
-
-
-    // }
-
-    // if (bx_mask_ag[bx-1]){
-    //   for (const auto& egamma: l1egs_){
-
-    //       m_1dhist_["egEt_ag"]->Fill(egamma.et());
-    //       m_1dhist_["egPhi_ag"]->Fill(egamma.phi());
-    //       m_1dhist_["egEta_ag"]->Fill(egamma.eta());
-
-    //     }
-
-    // }
-
-
-    //____________________________________________
-    for (const auto& jet: l1jets_){
-      m_1dhist_["Jets"]->Fill(bx);
-    }
-
-    for (const auto& egamma: l1egs_){
-      m_1dhist_["eGammas"]->Fill(bx);
-    }
-    // number of jets in bx
-
-    for (const auto& tau: l1taus_){
-      m_1dhist_["Taus"]->Fill(bx);
-    }
 
     // // muons
-    if (muons_b.find(lumisection_) == muons_b.end()) {
-      muons_b[lumisection_] = std::vector<float>(3564, 0.0f);
+    if (muons_n.find(lumisection_) == muons_n.end()) {
+      muons_n[lumisection_] = std::vector<float>(3564, 0.0f);
     }
     for (size_t i = 0; i < l1muons_.size(); ++i) {
-      muons_b[lumisection_][bx] += 1;
+      muons_n[lumisection_][bx] += 1;
     }
 
-    if (muons_b_c.find(lumisection_) == muons_b_c.end()) {
-      muons_b_c[lumisection_] = std::vector<float>(3564, 0.0f);
-      }
-    for (const auto& muon: l1muons_) {
-      if (muon.pt()>3){
-        muons_b_c[lumisection_][bx] += 1;
-      }
-    }
 
 
  // jets
@@ -554,41 +230,7 @@ void DemoAnalyzer::processDataBx(
       jets_n[lumisection_][bx] += 1;
     }
 
-    // jets
-    if (jets_b.find(lumisection_) == jets_b.end()) {
-      jets_b[lumisection_] = std::vector<float>(3564, 0.0f);
-    }
-    for (const auto& jet: l1jets_){
-      jets_b[lumisection_][bx] += jet.pt();
-    }
 
-
-     // jets
-    if (jets_b_c.find(lumisection_) == jets_b_c.end()) {
-      jets_b_c[lumisection_] = std::vector<float>(3564, 0.0f);
-    }
-    for (const auto& jet: l1jets_){
-      if (jet.pt() > 20){
-      jets_b_c[lumisection_][bx] += jet.pt();
-      }
-    }
-
-    // eGammas
-    if (eGammas_b.find(lumisection_) == eGammas_b.end()) {
-      eGammas_b[lumisection_] = std::vector<float>(3564, 0.0f);
-    }
-    for (const auto& egam: l1egs_){
-      eGammas_b[lumisection_][bx] += egam.pt();
-      }
-
-    if (eGammas_b_c.find(lumisection_) == eGammas_b_c.end()) {
-      eGammas_b_c[lumisection_] = std::vector<float>(3564, 0.0f);
-    }
-    for (const auto& egam: l1egs_){
-      if (egam.pt() > 10){
-      eGammas_b_c[lumisection_][bx] += egam.pt();
-      }
-    }
 
      // eGammas
     if (eGammas_n.find(lumisection_) == eGammas_n.end()) {
@@ -598,13 +240,6 @@ void DemoAnalyzer::processDataBx(
       eGammas_n[lumisection_][bx] += 1;
     }
 
-     // eGammas
-    if (eGammas_b.find(lumisection_) == eGammas_b.end()) {
-      eGammas_b[lumisection_] = std::vector<float>(3564, 0.0f);
-    }
-    for (size_t i = 0; i < l1egs_.size(); ++i) {
-      eGammas_b[lumisection_][bx] += 1;
-    }
 
     // taus
     if (taus_b.find(lumisection_) == taus_b.end()) {
