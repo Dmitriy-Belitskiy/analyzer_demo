@@ -6,7 +6,7 @@ run = 394468
 input_txt = f"run_list/{run}.txt"  # Input list of ROOT files
 submit_dir = "condor_submissions"  # Directory to store submit files
 executable_script = "run_cmssw.sh"  # Executable script for CMSSW jobs
-output_base = f'/eos/home-d/dmbelyts/root_out4/{run}/'  # EOS output
+output_base = f'/eos/home-d/dmbelyts/root_out5/{run}/'  # EOS output
 log_dir = "logs"
 
 # Ensure base directories exist
