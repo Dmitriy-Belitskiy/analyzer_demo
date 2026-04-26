@@ -196,7 +196,6 @@ void DemoAnalyzer::processDataBx(
     l1sums_.clear();
     l1muons_.clear();
 
-    lumisection_ = lumisection_;
 
     for (const auto& muon : muons) {
       l1muons_.emplace_back(getL1TMuon(muon));
