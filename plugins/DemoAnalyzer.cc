@@ -100,7 +100,7 @@ private:
   std::map<int, std::vector<float>> jets_n;
   std::map<int, std::vector<float>> eGammas_n;
   std::map<int, std::vector<float>> esum_n;
-
+  std::map<int, std::vector<float>> taus_n;
   edm::Service<TFileService> fs;
   TFileDirectory histoSubDir = fs->mkdir("histograms");
 };
@@ -241,11 +241,11 @@ void DemoAnalyzer::processDataBx(
 
 
     // taus
-    if (taus_b.find(lumisection_) == taus_b.end()) {
-      taus_b[lumisection_] = std::vector<float>(3564, 0.0f);
+    if (taus_n.find(lumisection_) == taus_n.end()) {
+      taus_n[lumisection_] = std::vector<float>(3564, 0.0f);
     }
     for (size_t i = 0; i < l1taus_.size(); ++i) {
-      taus_b[lumisection_][bx] += 1;
+      taus_n[lumisection_][bx] += 1;
     }
 
     // esum
@@ -253,21 +253,14 @@ void DemoAnalyzer::processDataBx(
 
       l1t::EtSum l1sum;
 
-      if (esum_b.find(lumisection_) == esum_b.end()) {
-        esum_b[lumisection_] = std::vector<float>(3564, 0.0f);
+      if (esum_n.find(lumisection_) == esum_n.end()) {
+        esum_n[lumisection_] = std::vector<float>(3564, 0.0f);
       }
 
       l1sum = getL1TEtSum(bxSums[0], l1t::EtSum::EtSumType::kTotalEt);
       float pt_value = static_cast<float>(l1sum.pt());
-      esum_b[lumisection_][bx] += pt_value;
+      esum_n[lumisection_][bx] += pt_value;
 
-      if (missing_b.find(lumisection_) == missing_b.end()) {
-        missing_b[lumisection_] = std::vector<float>(3564, 0.0f);
-      }
-
-      l1sum = getL1TEtSum(bxSums[0], l1t::EtSum::EtSumType::kMissingEt);
-      float et_value = static_cast<float>(l1sum.pt());
-      missing_b[lumisection_][bx] += et_value;
     }
 
 }
@@ -305,7 +298,7 @@ void DemoAnalyzer::endJob() {
     , nBX, -0.5, nBX - 0.5
     );
 
-  for (const auto& [key, values] : muons_b) {
+  for (const auto& [key, values] : muons_n) {
     for (int bx = 0; bx < nBX; ++bx) {
       m_2dhist_["MuonBxOcc2D"]->Fill(key, bx, values[bx]);
     }
@@ -352,27 +345,14 @@ void DemoAnalyzer::endJob() {
     , nBX, -0.5, nBX - 0.5
     );
 
-  for (const auto& [key, values] : taus_b) {
+  for (const auto& [key, values] : taus_n) {
     for (int bx = 0; bx < nBX; ++bx) {
       m_2dhist_["tauBxOcc2D"]->Fill(key, bx, values[bx]);
     }
   }
 
-  taus_b.clear();
+  taus_n.clear();
 
-  // Missing energy
-  m_2dhist_["missing2D"] = histoSubDir.make<TH2D>( "missing2D", "missing energy per bcid vs Lumisection"
-    , nLumiBins, minLS - 0.5, maxLS + 0.5
-    , nBX, -0.5, nBX - 0.5
-    );
-
-  for (const auto& [key, values] : missing_b) {
-    for (int bx = 0; bx < nBX; ++bx) {
-      m_2dhist_["missing2D"]->Fill(key, bx, values[bx]);
-    }
-  }
-
-  missing_b.clear();
 
   // Energy sum
   m_2dhist_["energySum2D"] = histoSubDir.make<TH2D>( "energySum2D", "energy per bcid vs Lumisection"
@@ -380,13 +360,13 @@ void DemoAnalyzer::endJob() {
     , nBX, -0.5, nBX - 0.5
     );
 
-  for (const auto& [key, values] : esum_b) {
+  for (const auto& [key, values] : esum_n) {
     for (int bx = 0; bx < nBX; ++bx) {
       m_2dhist_["energySum2D"]->Fill(key, bx, values[bx]);
     }
   }
-
-  esum_b.clear();
+`
+  esum_n.clear();
 
 }
 
