@@ -4,3 +4,4 @@
 *.log
 *.err
 *.sub
+__pycache__/
