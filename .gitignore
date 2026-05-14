@@ -6,3 +6,4 @@
 *.sub
 __pycache__/
 run_butch.sh
+run_test.sh

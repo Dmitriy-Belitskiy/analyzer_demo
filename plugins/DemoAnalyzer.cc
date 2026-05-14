@@ -55,7 +55,12 @@ public:
   explicit DemoAnalyzer(const edm::ParameterSet&);
   ~DemoAnalyzer() {}
   static void fillDescriptions(edm::ConfigurationDescriptions&);
-
+  
+  uint64_t start_time_sec;
+  uint64_t start_time_msec;
+  uint64_t prev_time_sec;
+  uint64_t prev_time_msec;
+  uint64_t curent_ls = 0ULL;
 
 private:
   void analyze(const edm::Event&, const edm::EventSetup&) override;
@@ -146,6 +151,11 @@ void DemoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&) {
 
   auto lumi = iEvent.luminosityBlock();
 
+  auto ts = iEvent.time();
+
+  uint64_t time_sec  = ts.unixTime();
+  uint64_t time_msec = ts.microsecondOffset() / 1000ULL;
+
   auto a5 = iEvent.id().event();
 
   uint64_t a1 = (a5 >> (6 + 12)) & ((1ULL << 46) - 1);  // top 46 bits
@@ -153,7 +163,47 @@ void DemoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&) {
   uint64_t a3 =  a5              & 0xFFF;               // last 12 bits
 
   lumisection_ = ( (a1<<6) | a2 );
+   
+  //________handle time stamps____________________________________
+  // first event initialization
+  if (curent_ls == 0ULL) {
 
+    curent_ls = lumisection_;
+
+    start_time_sec  = time_sec;
+    start_time_msec = time_msec;
+
+    prev_time_sec  = time_sec;
+    prev_time_msec = time_msec;
+  }
+
+ // LS changed
+  if (lumisection_ != curent_ls) {
+
+    // print previous LS interval
+    std::cout
+      << "LS=" << curent_ls
+      << " start="
+      << start_time_sec << "." << start_time_msec
+      << " end="
+      << prev_time_sec << "." << prev_time_msec
+      << std::endl;
+
+    // switch to new LS
+    curent_ls = lumisection_;
+
+    start_time_sec  = time_sec;
+    start_time_msec = time_msec;
+
+    prev_time_sec  = time_sec;
+    prev_time_msec = time_msec;
+  }
+  else {
+
+    // update end time
+    prev_time_sec  = time_sec;
+    prev_time_msec = time_msec;
+  }
 
   // process all BX 
   for (unsigned bx = 0; bx < 3564; ++bx) {
