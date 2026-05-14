@@ -19,7 +19,7 @@
 #include "TH2D.h"
 #include "TFile.h"
 #include "TDirectory.h"
-
+#include "TTree.h"
 // L1 scouting
 #include "DataFormats/L1Scouting/interface/L1ScoutingMuon.h"
 #include "DataFormats/L1Scouting/interface/L1ScoutingCalo.h"
@@ -84,7 +84,13 @@ private:
   edm::EDGetTokenT<OrbitCollection<l1ScoutingRun3::Tau>> tausTokenData_;
   edm::EDGetTokenT<OrbitCollection<l1ScoutingRun3::BxSums>> bxSumsTokenData_;
 
+  TTree* ls_tree_;
 
+  ULong64_t tree_ls_;
+  ULong64_t tree_start_sec_;
+  ULong64_t tree_start_msec_;
+  ULong64_t tree_end_sec_;
+  ULong64_t tree_end_msec_;
 
 
   // l1t standard data format
@@ -122,6 +128,15 @@ DemoAnalyzer::DemoAnalyzer(const edm::ParameterSet& iPSet)
 
   // test shared resources
   usesResource(TFileService::kSharedResource);
+
+  ls_tree_ = fs->make<TTree>("LSInfo", "LS timing info");
+
+  ls_tree_->Branch("lsID", &tree_ls_, "lsID/l");
+  ls_tree_->Branch("start_sec", &tree_start_sec_, "start_sec/l");
+  ls_tree_->Branch("start_msec", &tree_start_msec_, "start_msec/l");
+  ls_tree_->Branch("end_sec", &tree_end_sec_, "end_sec/l");
+  ls_tree_->Branch("end_msec", &tree_end_msec_, "end_msec/l");
+
 
   // init internal containers for l1 objects
   l1muons_.reserve(8);
@@ -181,14 +196,22 @@ void DemoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&) {
   if (lumisection_ != curent_ls) {
 
     // print previous LS interval
-    std::cout
-      << "LS=" << curent_ls
-      << " start="
-      << start_time_sec << "." << start_time_msec
-      << " end="
-      << prev_time_sec << "." << prev_time_msec
-      << std::endl;
+    //std::cout
+    // << "LS=" << curent_ls
+    //<< " start="
+    //<< start_time_sec << "." << start_time_msec
+    //<< " end="
+    //<< prev_time_sec << "." << prev_time_msec
+    //<< std::endl;
+    tree_ls_ = curent_ls;
 
+    tree_start_sec_  = start_time_sec;
+    tree_start_msec_ = start_time_msec;
+
+    tree_end_sec_  = prev_time_sec;
+    tree_end_msec_ = prev_time_msec;
+
+    ls_tree_->Fill();
     // switch to new LS
     curent_ls = lumisection_;
 
@@ -336,6 +359,17 @@ void DemoAnalyzer::beginJob() {
 
 // ------------ method called once each job just after ending the event loop  ------------
 void DemoAnalyzer::endJob() {
+  
+  tree_ls_ = curent_ls;
+
+  tree_start_sec_  = start_time_sec;
+  tree_start_msec_ = start_time_msec;
+
+  tree_end_sec_  = prev_time_sec;
+  tree_end_msec_ = prev_time_msec;
+
+  ls_tree_->Fill();
+
 
   // fill histograms
   const int nBX = 3564;
