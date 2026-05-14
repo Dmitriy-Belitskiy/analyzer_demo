@@ -5,3 +5,4 @@
 *.err
 *.sub
 __pycache__/
+run_butch.sh

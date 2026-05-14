@@ -98,6 +98,7 @@ private:
   // map containing objects
   std::map<int, std::vector<float>> muons_n;
   std::map<int, std::vector<float>> jets_n;
+  std::map<int, std::vector<float>> jets_n_cut;
   std::map<int, std::vector<float>> eGammas_n;
   std::map<int, std::vector<float>> esum_n;
   std::map<int, std::vector<float>> taus_n;
@@ -229,6 +230,13 @@ void DemoAnalyzer::processDataBx(
       jets_n[lumisection_][bx] += 1;
     }
 
+    // jets cut
+    if (jets_n_cut.find(lumisection_) == jets_n_cut.end()) {
+      jets_n_cut[lumisection_] = std::vector<float>(3564, 0.0f);
+    }
+    for (const auto& jet: l1jets_){
+      if (jet.et() > 25) {jets_n_cut[lumisection_][bx] += 1;}
+    }
 
 
      // eGammas
@@ -321,6 +329,19 @@ void DemoAnalyzer::endJob() {
 
   jets_n.clear();
 
+   // jets
+  m_2dhist_["JetBxOcc2D_n_cut"] = histoSubDir.make<TH2D>( "JetBxOcc2D_n_cut", "Jet per bcid vs Lumisection"
+    , nLumiBins, minLS - 0.5, maxLS + 0.5
+    , nBX, -0.5, nBX - 0.5
+    );
+
+  for (const auto& [key, values] : jets_n_cut) {
+    for (int bx = 0; bx < nBX; ++bx) {
+      m_2dhist_["JetBxOcc2D_n_cut"]->Fill(key, bx, values[bx]);
+    }
+  }
+
+  jets_n_cut.clear();
 
   // eGammas
 
