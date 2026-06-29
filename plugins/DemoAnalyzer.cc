@@ -56,17 +56,20 @@ public:
   ~DemoAnalyzer() {}
   static void fillDescriptions(edm::ConfigurationDescriptions&);
   
-  uint64_t start_time_sec;
-  uint64_t start_time_msec;
-  uint64_t prev_time_sec;
-  uint64_t prev_time_msec;
-  uint64_t curent_ls = 0ULL;
+
 
 private:
   void analyze(const edm::Event&, const edm::EventSetup&) override;
   void beginJob() override;
   void endJob() override;
 
+  struct LSInfo
+    {
+        uint64_t start_ts = std::numeric_limits<uint64_t>::max();
+        uint64_t end_ts   = 0;
+    };
+
+  std::unordered_map<uint64_t, LSInfo> ls_times_;
 
   void processDataBx(
     unsigned bx,
@@ -180,53 +183,13 @@ void DemoAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup&) {
   lumisection_ = ( (a1<<6) | a2 );
    
   //________handle time stamps____________________________________
-  // first event initialization
-  if (curent_ls == 0ULL) {
+  uint64_t timestamp =
+    time_sec * 1000ULL + time_msec;
 
-    curent_ls = lumisection_;
+  auto& info = ls_times_[lumisection_];
 
-    start_time_sec  = time_sec;
-    start_time_msec = time_msec;
-
-    prev_time_sec  = time_sec;
-    prev_time_msec = time_msec;
-  }
-
- // LS changed
-  if (lumisection_ != curent_ls) {
-
-    // print previous LS interval
-    //std::cout
-    // << "LS=" << curent_ls
-    //<< " start="
-    //<< start_time_sec << "." << start_time_msec
-    //<< " end="
-    //<< prev_time_sec << "." << prev_time_msec
-    //<< std::endl;
-    tree_ls_ = curent_ls;
-
-    tree_start_sec_  = start_time_sec;
-    tree_start_msec_ = start_time_msec;
-
-    tree_end_sec_  = prev_time_sec;
-    tree_end_msec_ = prev_time_msec;
-
-    ls_tree_->Fill();
-    // switch to new LS
-    curent_ls = lumisection_;
-
-    start_time_sec  = time_sec;
-    start_time_msec = time_msec;
-
-    prev_time_sec  = time_sec;
-    prev_time_msec = time_msec;
-  }
-  else {
-
-    // update end time
-    prev_time_sec  = time_sec;
-    prev_time_msec = time_msec;
-  }
+  info.start_ts = std::min(info.start_ts, timestamp);
+  info.end_ts   = std::max(info.end_ts, timestamp);
 
   // process all BX 
   for (unsigned bx = 0; bx < 3564; ++bx) {
@@ -360,15 +323,18 @@ void DemoAnalyzer::beginJob() {
 // ------------ method called once each job just after ending the event loop  ------------
 void DemoAnalyzer::endJob() {
   
-  tree_ls_ = curent_ls;
+   for (const auto& [ls, info] : ls_times_)
+    {
+        tree_ls_ = ls;
 
-  tree_start_sec_  = start_time_sec;
-  tree_start_msec_ = start_time_msec;
+        tree_start_sec_  = info.start_ts / 1000ULL;
+        tree_start_msec_ = info.start_ts % 1000ULL;
 
-  tree_end_sec_  = prev_time_sec;
-  tree_end_msec_ = prev_time_msec;
+        tree_end_sec_    = info.end_ts / 1000ULL;
+        tree_end_msec_   = info.end_ts % 1000ULL;
 
-  ls_tree_->Fill();
+        ls_tree_->Fill();
+    }
 
 
   // fill histograms
