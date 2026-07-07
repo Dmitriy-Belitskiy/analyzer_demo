@@ -48,6 +48,12 @@
 
 #include <typeinfo>
 
+/*
+inline float transverse(const l1t::Muon&   m) { return m.pt(); }
+inline float transverse(const l1t::Jet&    j) { return j.et(); }
+inline float transverse(const l1t::EGamma& e) { return e.et(); }*/
+
+
 using namespace l1ScoutingRun3;
 
 class DemoAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
@@ -126,12 +132,28 @@ private:
   unsigned lumisection_;
 
   // map containing objects
+  // std::map<int, std::vector<float>> muons_n;
+  // std::map<int, std::vector<float>> jets_n;
+  // std::map<int, std::vector<float>> jets_n_cut;
+  // std::map<int, std::vector<float>> eGammas_n;
+  // std::map<int, std::vector<float>> esum_n;
+  // std::map<int, std::vector<float>> taus_n;
+
+  // ---- Object E_T / p_T cuts -------------------------------------------
+  static constexpr bool  applyCuts_   = true;   // flip to false to disable ALL cuts
+  static constexpr float muonEtCut_   = 3.0f;   // GeV
+  static constexpr float jetEtCut_    = 50.0f;  // GeV
+  static constexpr float egammaEtCut_ = 25.0f;  // GeV
+  // ----------------------------------------------------------------------
+
+
   std::map<int, std::vector<float>> muons_n;
   std::map<int, std::vector<float>> jets_n;
-  std::map<int, std::vector<float>> jets_n_cut;
+  std::map<int, std::vector<float>> jets_b;      // per-bx sum of jet p_T
   std::map<int, std::vector<float>> eGammas_n;
   std::map<int, std::vector<float>> esum_n;
-  std::map<int, std::vector<float>> taus_n;
+
+
   edm::Service<TFileService> fs;
   TFileDirectory histoSubDir = fs->mkdir("histograms");
 };
@@ -266,50 +288,42 @@ void DemoAnalyzer::processDataBx(
     fillObservables("jet",    bx, l1jets_);
     fillObservables("muon",   bx, l1muons_);
     fillObservables("egamma", bx, l1egs_);
-    // // muons
+
+    // muons (muon E_T cut applied when applyCuts_)
     if (muons_n.find(lumisection_) == muons_n.end()) {
       muons_n[lumisection_] = std::vector<float>(3564, 0.0f);
     }
-    for (size_t i = 0; i < l1muons_.size(); ++i) {
+    for (const auto& muon : l1muons_) {
+      if (applyCuts_ && muon.et() <= muonEtCut_) continue;
       muons_n[lumisection_][bx] += 1;
     }
 
-
-
- // jets
+    // jets count (jet E_T cut applied when applyCuts_)
     if (jets_n.find(lumisection_) == jets_n.end()) {
       jets_n[lumisection_] = std::vector<float>(3564, 0.0f);
     }
-    for (const auto& jet: l1jets_){
+    for (const auto& jet : l1jets_) {
+      if (applyCuts_ && jet.et() <= jetEtCut_) continue;
       jets_n[lumisection_][bx] += 1;
     }
 
-    // jets cut
-    if (jets_n_cut.find(lumisection_) == jets_n_cut.end()) {
-      jets_n_cut[lumisection_] = std::vector<float>(3564, 0.0f);
+    // jets p_T sum (same jet E_T cut applied when applyCuts_)
+    if (jets_b.find(lumisection_) == jets_b.end()) {
+      jets_b[lumisection_] = std::vector<float>(3564, 0.0f);
     }
-    for (const auto& jet: l1jets_){
-      if (jet.et() > 25) {jets_n_cut[lumisection_][bx] += 1;}
+    for (const auto& jet : l1jets_) {
+      if (applyCuts_ && jet.et() <= jetEtCut_) continue;
+      jets_b[lumisection_][bx] += jet.pt();
     }
 
-
-     // eGammas
+    // eGammas (eGamma E_T cut applied when applyCuts_)
     if (eGammas_n.find(lumisection_) == eGammas_n.end()) {
       eGammas_n[lumisection_] = std::vector<float>(3564, 0.0f);
     }
-    for (size_t i = 0; i < l1egs_.size(); ++i) {
+    for (const auto& eg : l1egs_) {
+      if (applyCuts_ && eg.et() <= egammaEtCut_) continue;
       eGammas_n[lumisection_][bx] += 1;
     }
-
-
-    // taus
-    if (taus_n.find(lumisection_) == taus_n.end()) {
-      taus_n[lumisection_] = std::vector<float>(3564, 0.0f);
-    }
-    for (size_t i = 0; i < l1taus_.size(); ++i) {
-      taus_n[lumisection_][bx] += 1;
-    }
-
     // esum
     if (bxSums.size()>0) {
 
@@ -446,19 +460,19 @@ void DemoAnalyzer::endJob() {
 
   jets_n.clear();
 
-   // jets
-  m_2dhist_["JetBxOcc2D_n_cut"] = histoSubDir.make<TH2D>( "JetBxOcc2D_n_cut", "Jet per bcid vs Lumisection"
+  // jet p_T sum
+  m_2dhist_["JetBxOcc2D_Et"] = histoSubDir.make<TH2D>( "JetBxOcc2D_Et", "Jet p_{T} sum per bcid vs Lumisection"
     , nLumiBins, minLS - 0.5, maxLS + 0.5
     , nBX, -0.5, nBX - 0.5
     );
 
-  for (const auto& [key, values] : jets_n_cut) {
+  for (const auto& [key, values] : jets_b) {
     for (int bx = 0; bx < nBX; ++bx) {
-      m_2dhist_["JetBxOcc2D_n_cut"]->Fill(key, bx, values[bx]);
+      m_2dhist_["JetBxOcc2D_Et"]->Fill(key, bx, values[bx]);
     }
   }
 
-  jets_n_cut.clear();
+  jets_b.clear();
 
   // eGammas
 
@@ -477,19 +491,19 @@ void DemoAnalyzer::endJob() {
   eGammas_n.clear();
 
 
-  // taus
-  m_2dhist_["tauBxOcc2D"] = histoSubDir.make<TH2D>( "tauBxOcc2D", "tau per bcid vs Lumisection"
-    , nLumiBins, minLS - 0.5, maxLS + 0.5
-    , nBX, -0.5, nBX - 0.5
-    );
-
-  for (const auto& [key, values] : taus_n) {
-    for (int bx = 0; bx < nBX; ++bx) {
-      m_2dhist_["tauBxOcc2D"]->Fill(key, bx, values[bx]);
-    }
-  }
-
-  taus_n.clear();
+  // // taus
+  // m_2dhist_["tauBxOcc2D"] = histoSubDir.make<TH2D>( "tauBxOcc2D", "tau per bcid vs Lumisection"
+  //   , nLumiBins, minLS - 0.5, maxLS + 0.5
+  //   , nBX, -0.5, nBX - 0.5
+  //   );
+  //
+  // for (const auto& [key, values] : taus_n) {
+  //   for (int bx = 0; bx < nBX; ++bx) {
+  //     m_2dhist_["tauBxOcc2D"]->Fill(key, bx, values[bx]);
+  //   }
+  // }
+  //
+  // taus_n.clear();
 
 
   // Energy sum
